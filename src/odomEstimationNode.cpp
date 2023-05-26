@@ -84,13 +84,15 @@ void odom_estimation(){
                 is_odom_inited = true;
                 ROS_INFO("odom inited");
             }else{
+                static std::ofstream out("/home/arcs/cw_floam/time.csv");
                 std::chrono::time_point<std::chrono::system_clock> start, end;
                 start = std::chrono::system_clock::now();
                 odomEstimation.updatePointsToMap(pointcloud_edge_in, pointcloud_surf_in);
                 end = std::chrono::system_clock::now();
                 std::chrono::duration<float> elapsed_seconds = end - start;
                 total_frame++;
-                float time_temp = elapsed_seconds.count() * 1000;
+                double time_temp = elapsed_seconds.count() * 1000;
+                out<<time_temp<<','<<std::endl;
                 total_time+=time_temp;
                 ROS_INFO("average odom estimation time %f ms \n \n", total_time/total_frame);
             }
@@ -107,6 +109,7 @@ void odom_estimation(){
             tf::Quaternion q(q_current.x(),q_current.y(),q_current.z(),q_current.w());
             transform.setRotation(q);
             br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "base_link"));
+            br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "velodyne"));
 
             // publish odometry
             nav_msgs::Odometry laserOdometry;
